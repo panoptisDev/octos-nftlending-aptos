@@ -1,0 +1,17 @@
+[package]
+name = "nft-lending"
+version = "1.0.0"
+authors = ["ajaythxkur"]
+
+[addresses]
+my_addrx="_"
+
+[dev-addresses]
+my_addrx="0x100"
+
+[dependencies]
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", rev = "main", subdir = "aptos-move/framework/aptos-framework"}
+AptosTokenObjects = {git = "https://github.com/aptos-labs/aptos-core.git", rev = "main", subdir = "aptos-move/framework/aptos-token-objects"}
+AptosToken = { git = "https://github.com/aptos-labs/aptos-core.git", rev = "main", subdir = "aptos-move/framework/aptos-token" }
+
+[dev-dependencies]
