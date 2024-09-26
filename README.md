@@ -206,8 +206,8 @@ Don't forget to give the project a star! Thanks again!
 4. Push to the Branch (`git push origin feature/awesome-aptos`)
 5. Open a Pull Request
 
-### Top contributors:
-
+### contributors:
+<a panoptisDev </a>
 <a href="https://github.com/ajaythxkur/octos/graphs/contributors">
   <img src="https://iili.io/JnHoQ8F.png" alt="contrib.rocks image" />
 </a>
