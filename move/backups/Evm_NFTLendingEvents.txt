@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+// this is the first atempt to remake this Move to evm contract
+// panoptisDev
+
 contract NFTLendingEvents {
     event ListingEvent(address indexed tokenId, address indexed objAddr);
     event DelistingEvent(address indexed tokenId, address indexed objAddr);
