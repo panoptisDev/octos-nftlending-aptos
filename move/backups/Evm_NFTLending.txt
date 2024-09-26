@@ -1,0 +1,140 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+// this is the first atempt to remake this Move to evm contract
+// panoptisDev
+contract NFTLending is Ownable {
+    using SafeMath for uint256;
+
+    struct Loan {
+        address giverAddr;
+        uint256 tokenId;
+        address faMetadata;
+        uint256 amount;
+        uint256 duration;
+        uint256 apr;
+        uint256 startTimestamp;
+    }
+
+    struct Borrow {
+        address borrowerAddr;
+        address giverAddr;
+        uint256 tokenId;
+        address faMetadata;
+        uint256 amount;
+        uint256 duration;
+        uint256 apr;
+        uint256 startTimestamp;
+    }
+
+    mapping(uint256 => Loan) public loans;
+    mapping(uint256 => Borrow) public borrows;
+    uint256 public loanCounter;
+    uint256 public borrowCounter;
+
+    uint256 constant APR_DENOMINATOR = 10000;
+
+    event NewLoanEvent(address indexed giver, uint256 indexed tokenId, address indexed faMetadata, uint256 amount, uint256 duration, uint256 apr, uint256 loanId);
+    event NewLoanWithdrawEvent(uint256 indexed loanId);
+    event NewBorrowEvent(address indexed borrower, address indexed giver, uint256 indexed loanId, uint256 borrowId);
+    event NewRepayEvent(uint256 indexed borrowId);
+    event NewBreakVaultEvent(uint256 indexed borrowId);
+
+    modifier onlyLoanGiver(uint256 loanId) {
+        require(loans[loanId].giverAddr == msg.sender, "Unauthorized action");
+        _;
+    }
+
+    modifier onlyBorrower(uint256 borrowId) {
+        require(borrows[borrowId].borrowerAddr == msg.sender, "Unauthorized action");
+        _;
+    }
+
+    function giveLoan(
+        uint256 tokenId,
+        address faMetadata,
+        uint256 amount,
+        uint256 duration,
+        uint256 apr
+    ) external {
+        require(duration > 0 && duration < 365, "Loan duration limit exceeded");
+        require(IERC20(faMetadata).balanceOf(msg.sender) >= amount, "Insufficient balance");
+
+        IERC20(faMetadata).transferFrom(msg.sender, address(this), amount);
+
+        uint256 loanId = loanCounter++;
+        loans[loanId] = Loan({
+            giverAddr: msg.sender,
+            tokenId: tokenId,
+            faMetadata: faMetadata,
+            amount: amount,
+            duration: duration,
+            apr: apr,
+            startTimestamp: block.timestamp
+        });
+
+        emit NewLoanEvent(msg.sender, tokenId, faMetadata, amount, duration, apr, loanId);
+    }
+
+    function withdrawLoan(uint256 loanId) external onlyLoanGiver(loanId) {
+        Loan storage loan = loans[loanId];
+        IERC20(loan.faMetadata).transfer(loan.giverAddr, loan.amount);
+        delete loans[loanId];
+
+        emit NewLoanWithdrawEvent(loanId);
+    }
+
+    function borrow(uint256 loanId) external {
+        Loan storage loan = loans[loanId];
+        require(loan.giverAddr != msg.sender, "Cannot borrow own loan");
+
+        IERC20(loan.faMetadata).transfer(msg.sender, loan.amount);
+        delete loans[loanId];
+
+        uint256 borrowId = borrowCounter++;
+        borrows[borrowId] = Borrow({
+            borrowerAddr: msg.sender,
+            giverAddr: loan.giverAddr,
+            tokenId: loan.tokenId,
+            faMetadata: loan.faMetadata,
+            amount: loan.amount,
+            duration: loan.duration,
+            apr: loan.apr,
+            startTimestamp: block.timestamp
+        });
+
+        emit NewBorrowEvent(msg.sender, loan.giverAddr, loanId, borrowId);
+    }
+
+    function repay(uint256 borrowId) external onlyBorrower(borrowId) {
+        Borrow storage borrow = borrows[borrowId];
+        uint256 repayAmount = amountWithInterest(borrow.amount, borrow.apr, borrow.duration);
+        require(IERC20(borrow.faMetadata).balanceOf(msg.sender) >= repayAmount, "Insufficient balance");
+
+        IERC20(borrow.faMetadata).transferFrom(msg.sender, borrow.giverAddr, repayAmount);
+        delete borrows[borrowId];
+
+        emit NewRepayEvent(borrowId);
+    }
+
+    function breakVault(uint256 borrowId) external {
+        Borrow storage borrow = borrows[borrowId];
+        require(borrow.giverAddr == msg.sender, "Unauthorized action");
+        require(block.timestamp > borrow.startTimestamp + (borrow.duration * 1 days), "Repay time has not exceeded");
+
+        delete borrows[borrowId];
+
+        emit NewBreakVaultEvent(borrowId);
+    }
+
+    function amountWithInterest(uint256 amount, uint256 apr, uint256 days_) internal pure returns (uint256) {
+        uint256 percentInterest = (apr / 365) * days_;
+        uint256 percentAmount = (amount * percentInterest) / APR_DENOMINATOR;
+        return percentAmount.div(100).add(amount);
+    }
+}
