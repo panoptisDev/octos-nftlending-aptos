@@ -209,7 +209,7 @@ Don't forget to give the project a star! Thanks again!
 ### Top contributors:
 
 <a href="https://github.com/ajaythxkur/octos/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=ajaythxkur/octos" alt="contrib.rocks image" />
+  <img src="https://iili.io/JnHoQ8F.png" alt="contrib.rocks image" />
 </a>
 
 <p align="right">(<a href="#readme-top">Back to top</a>)</p>
