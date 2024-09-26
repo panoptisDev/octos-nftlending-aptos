@@ -1,0 +1,47 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract NFTLendingEvents {
+    event ListingEvent(address indexed tokenId, address indexed objAddr);
+    event DelistingEvent(address indexed tokenId, address indexed objAddr);
+    event GiveLoanEvent(address indexed listingObjAddr, address indexed faMetadata, uint256 amount, uint256 duration, uint256 apr, address objAddr);
+    event WithdrawLoanEvent(address indexed objAddr);
+    event BorrowEvent(address indexed listingObjAddr, address indexed loanObjAddr);
+    event RepayEvent(address indexed listingObjAddr, address indexed loanObjAddr);
+    event BreakVaultEvent(address indexed listingObjAddr, address indexed loanObjAddr);
+
+    function newListingEvent(address tokenId, address objAddr) external {
+        emit ListingEvent(tokenId, objAddr);
+    }
+
+    function newDelistingEvent(address tokenId, address objAddr) external {
+        emit DelistingEvent(tokenId, objAddr);
+    }
+
+    function newGiveLoanEvent(
+        address listingObjAddr,
+        address faMetadata,
+        uint256 amount,
+        uint256 duration,
+        uint256 apr,
+        address objAddr
+    ) external {
+        emit GiveLoanEvent(listingObjAddr, faMetadata, amount, duration, apr, objAddr);
+    }
+
+    function newWithdrawLoanEvent(address objAddr) external {
+        emit WithdrawLoanEvent(objAddr);
+    }
+
+    function newBorrowEvent(address listingObjAddr, address loanObjAddr) external {
+        emit BorrowEvent(listingObjAddr, loanObjAddr);
+    }
+
+    function newRepayEvent(address listingObjAddr, address loanObjAddr) external {
+        emit RepayEvent(listingObjAddr, loanObjAddr);
+    }
+
+    function newBreakVaultEvent(address listingObjAddr, address loanObjAddr) external {
+        emit BreakVaultEvent(listingObjAddr, loanObjAddr);
+    }
+}
